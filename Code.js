@@ -336,6 +336,11 @@ function doGet(e) {
           debug.pagosCount = enriched.pagos.length;
           debug.descuentosCount = enriched.descuentos.length;
           debug.step = 'listo';
+
+          // Variante C: reproducir EXACTO lo que hace la acción real getPedido
+          if (e.parameter.modo === 'exacto') {
+            return jsonResponse({ ok: true, data: enriched });
+          }
         }
 
         return jsonResponse({ ok: true, debug: debug });
