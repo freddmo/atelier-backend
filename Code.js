@@ -341,6 +341,10 @@ function doGet(e) {
           if (e.parameter.modo === 'exacto') {
             return jsonResponse({ ok: true, data: enriched });
           }
+          // Variante D: el mismo objeto pero DENTRO de un arreglo (como getPedidos)
+          if (e.parameter.modo === 'array') {
+            return jsonResponse({ ok: true, data: [enriched] });
+          }
         }
 
         return jsonResponse({ ok: true, debug: debug });
