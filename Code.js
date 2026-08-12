@@ -293,68 +293,6 @@ function doGet(e) {
       });
     }
 
-    // ── DIAGNÓSTICO TEMPORAL — borrar después de confirmar ──
-    if (action === 'testGetPedido') {
-      const debug = { step: 'start' };
-      try {
-        debug.step = 'leer ordenes';
-        const ordenes = readSheetAsObjects(TABS.ordenes);
-        debug.countOrdenes = ordenes.length;
-
-        debug.step = 'buscar orden';
-        const orden = ordenes.find(o => String(o.ORDEN_ID).trim() === String(e.parameter.id).trim());
-        debug.ordenEncontrada = !!orden;
-
-        if (orden) {
-          debug.step = 'leer items';
-          const items = readSheetAsObjects(TABS.items);
-          debug.countItems = items.length;
-
-          debug.step = 'leer costos';
-          const costos = readSheetAsObjects(TABS.costos);
-          debug.countCostos = costos.length;
-
-          debug.step = 'leer pagos';
-          const pagos = readSheetAsObjects(TABS.pagos);
-          debug.countPagos = pagos.length;
-
-          debug.step = 'leer descuentos';
-          const descuentos = readSheetAsObjects(TABS.descuentos);
-          debug.countDescuentos = descuentos.length;
-
-          debug.step = 'leer clientes';
-          const clientes = readSheetAsObjects(TABS.clientes);
-          debug.countClientes = clientes.length;
-
-          debug.step = 'enrichOrden';
-          const enriched = enrichOrden(orden, items, costos, pagos, descuentos, clientes);
-          debug.step = 'stringify';
-          const jsonStr = JSON.stringify(enriched);
-          debug.jsonLength = jsonStr.length;
-          debug.itemsCount = enriched.items.length;
-          debug.costosCount = enriched.costos.length;
-          debug.pagosCount = enriched.pagos.length;
-          debug.descuentosCount = enriched.descuentos.length;
-          debug.step = 'listo';
-
-          // Variante C: reproducir EXACTO lo que hace la acción real getPedido
-          if (e.parameter.modo === 'exacto') {
-            return jsonResponse({ ok: true, data: enriched });
-          }
-          // Variante D: el mismo objeto pero DENTRO de un arreglo (como getPedidos)
-          if (e.parameter.modo === 'array') {
-            return jsonResponse({ ok: true, data: [enriched] });
-          }
-        }
-
-        return jsonResponse({ ok: true, debug: debug });
-      } catch (err) {
-        debug.error = err.message;
-        debug.stack = String(err.stack || '').slice(0, 500);
-        return jsonResponse({ ok: false, debug: debug });
-      }
-    }
-
     if (action === 'getPedidos') return jsonResponse({ ok: true, data: getPedidos() });
 
     if (action === 'getPedido') {
@@ -362,7 +300,10 @@ function doGet(e) {
       if (!id) return errorResponse('Falta parámetro id');
       const pedido = getPedido(id);
       if (!pedido) return errorResponse('Pedido no encontrado', 404);
-      return jsonResponse({ ok: true, data: pedido });
+      // Se envuelve en un arreglo de 1 elemento — Google Apps Script falla al
+      // entregar un objeto suelto como "data" (confirmado con pruebas), pero
+      // sí entrega bien un arreglo. El frontend lo desenvuelve (data[0]).
+      return jsonResponse({ ok: true, data: [pedido] });
     }
 
     if (action === 'getEstados') return jsonResponse({ ok: true, data: VALID_STATES });
