@@ -1,0 +1,29 @@
+name: Deploy Apps Script
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar clasp
+        run: npm install -g @google/clasp
+
+      - name: Restaurar credenciales de clasp
+        run: echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+
+      - name: Subir código a Apps Script
+        run: clasp push --force
+
+      - name: Publicar en el deployment existente (misma URL siempre)
+        run: clasp deploy --deploymentId ${{ secrets.SCRIPT_DEPLOYMENT_ID }} --description "Deploy automático $(date +'%Y-%m-%d %H:%M')"
