@@ -293,6 +293,11 @@ function doGet(e) {
       });
     }
 
+    // ── DIAGNÓSTICO TEMPORAL — borrar después de confirmar ──
+    if (action === 'testGetPedido') {
+      return jsonResponse({ ok: true, test: 'hello', idRecibido: e.parameter.id || 'NINGUNO' });
+    }
+
     if (action === 'getPedidos') return jsonResponse({ ok: true, data: getPedidos() });
 
     if (action === 'getPedido') {
