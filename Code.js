@@ -295,7 +295,55 @@ function doGet(e) {
 
     // ── DIAGNÓSTICO TEMPORAL — borrar después de confirmar ──
     if (action === 'testGetPedido') {
-      return jsonResponse({ ok: true, test: 'hello', idRecibido: e.parameter.id || 'NINGUNO' });
+      const debug = { step: 'start' };
+      try {
+        debug.step = 'leer ordenes';
+        const ordenes = readSheetAsObjects(TABS.ordenes);
+        debug.countOrdenes = ordenes.length;
+
+        debug.step = 'buscar orden';
+        const orden = ordenes.find(o => String(o.ORDEN_ID).trim() === String(e.parameter.id).trim());
+        debug.ordenEncontrada = !!orden;
+
+        if (orden) {
+          debug.step = 'leer items';
+          const items = readSheetAsObjects(TABS.items);
+          debug.countItems = items.length;
+
+          debug.step = 'leer costos';
+          const costos = readSheetAsObjects(TABS.costos);
+          debug.countCostos = costos.length;
+
+          debug.step = 'leer pagos';
+          const pagos = readSheetAsObjects(TABS.pagos);
+          debug.countPagos = pagos.length;
+
+          debug.step = 'leer descuentos';
+          const descuentos = readSheetAsObjects(TABS.descuentos);
+          debug.countDescuentos = descuentos.length;
+
+          debug.step = 'leer clientes';
+          const clientes = readSheetAsObjects(TABS.clientes);
+          debug.countClientes = clientes.length;
+
+          debug.step = 'enrichOrden';
+          const enriched = enrichOrden(orden, items, costos, pagos, descuentos, clientes);
+          debug.step = 'stringify';
+          const jsonStr = JSON.stringify(enriched);
+          debug.jsonLength = jsonStr.length;
+          debug.itemsCount = enriched.items.length;
+          debug.costosCount = enriched.costos.length;
+          debug.pagosCount = enriched.pagos.length;
+          debug.descuentosCount = enriched.descuentos.length;
+          debug.step = 'listo';
+        }
+
+        return jsonResponse({ ok: true, debug: debug });
+      } catch (err) {
+        debug.error = err.message;
+        debug.stack = String(err.stack || '').slice(0, 500);
+        return jsonResponse({ ok: false, debug: debug });
+      }
     }
 
     if (action === 'getPedidos') return jsonResponse({ ok: true, data: getPedidos() });
