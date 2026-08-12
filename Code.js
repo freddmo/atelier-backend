@@ -329,7 +329,7 @@ function doGet(e) {
           debug.step = 'enrichOrden';
           const enriched = enrichOrden(orden, items, costos, pagos, descuentos, clientes);
           debug.step = 'listo';
-          debug.enrichedKeys = Object.keys(enriched);
+          return jsonResponse({ ok: true, debug: debug, data: enriched });
         }
 
         return jsonResponse({ ok: true, debug: debug });
